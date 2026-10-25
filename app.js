@@ -661,7 +661,9 @@ async function userPage([name]) {
         </div>
       </div>
     </div>
-    <nav class="tabs" style="margin-top:34px" aria-label="Profile sections"><button class="active" data-tab="games">Creations</button><button data-tab="badges">Badges</button></nav>
+    ${(p.goblox_badges || []).length ? `<section class="section"><div class="section-head"><h2>Goblox Badges</h2><span class="spacer"></span><a class="more" href="#/badges">All Goblox Badges</a></div>
+      <div class="gb-badges">${p.goblox_badges.map(gobloxBadgeTile).join("")}</div></section>` : ""}
+    <nav class="tabs" style="margin-top:34px" aria-label="Profile sections"><button class="active" data-tab="games">Creations</button><button data-tab="badges">Game badges</button></nav>
     <section data-pane="games">${p.games.length ? `<div class="grid">${p.games.map((g) => gameCard({ ...g, creator: p.username })).join("")}</div>` : `<div class="panel empty">No games yet.</div>`}</section>
     <section data-pane="badges" hidden><div class="panel panel-pad">${p.badges.length ? p.badges.map((b) => `<div class="list-item">${MEDAL(true)}
         <div class="grow"><div class="title">${esc(b.name)}</div><div class="muted" style="font-size:14px">From <a href="#/game/${b.game_id}">${esc(b.game_name)}</a> · ${esc(ago(b.awarded_at))}</div></div></div>`).join("")
@@ -684,6 +686,24 @@ userPage.after = ([name]) => {
     } catch (e) { toast(e.message); add.disabled = false; }
   };
 };
+
+// ---- Goblox Badges
+
+function gobloxBadgeTile(b) {
+  return `<div class="gb-badge" title="${esc(b.description)}"><img src="img/badges/${esc(b.id)}.png" alt="">
+    <div class="name">${esc(b.name)}</div>${b.awarded_at ? `<div class="when">${esc(dateText(b.awarded_at))}</div>` : ""}</div>`;
+}
+
+async function badgesPage() {
+  const list = await rpc("gb_goblox_badge_list");
+  const mine = new Set(me && Array.isArray(me.goblox_badges) ? me.goblox_badges.map((b) => b.id) : []);
+  return `<div class="wrap"><h1 style="margin-bottom:6px">Goblox Badges</h1>
+    <p class="muted" style="margin-bottom:24px">Badges for what you do on Goblox itself. They show on your profile.</p>
+    <div class="panel panel-pad">${list.map((b) => `<div class="list-item"><img class="gb-big" src="img/badges/${esc(b.id)}.png" alt="">
+      <div class="grow"><div class="title">${esc(b.name)}</div><div class="muted">${esc(b.description)}</div></div>
+      <div style="text-align:right">${mine.has(b.id) ? `<div class="owned">You have it</div>` : ""}<div class="faint" style="font-size:14px">${num(b.holders)} ${Number(b.holders) === 1 ? "player has" : "players have"} it</div></div></div>`).join("")}</div></div>`;
+}
+routes.badges = badgesPage;
 
 // ---- friends
 
@@ -760,7 +780,7 @@ function downloadPage() {
           <a class="btn btn-primary btn-lg" href="${DOWNLOAD_URL}" download>${icon("download")}Download Goblox</a>
           <a class="btn btn-dark btn-lg" href="#/games">Browse games first</a>
         </div>
-        <div class="dl-meta">Free · Windows 10 and 11 · 1.3 MB</div>
+        <div class="dl-meta">Free · Windows 10 and 11 · 1.7 MB</div>
       </div>
       <img class="app-icon" src="img/icon.png" alt="">
     </div></section>
@@ -778,6 +798,7 @@ function downloadPage() {
           <tr><td>Microphone</td><td>Optional, for voice chat. It unlocks once your account is a day old.</td></tr>
         </table></div>
         <div class="panel panel-pad"><h2 style="margin-bottom:12px">What's new</h2><ul class="changes">
+          <li><a href="#/badges">Goblox Badges</a>: earn badges like 1K Club and Game Creator. They pop up in the app and show on your profile.</li>
           <li>New red G logo.</li>
           <li>Play buttons on this website open games in the app.</li>
           <li>Saving, leaderboards, badges and game passes for game makers.</li>

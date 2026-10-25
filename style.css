@@ -417,6 +417,13 @@ svg.icon { width: 18px; height: 18px; fill: currentColor; flex: none; }
 .profile-stats span { color: var(--muted); font-size: 14px; }
 .profile-actions { display: flex; gap: 10px; flex-wrap: wrap; }
 
+.gb-badges { display: grid; grid-template-columns: repeat(auto-fill, minmax(118px, 1fr)); gap: 16px; }
+.gb-badge { text-align: center; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 14px 8px 12px; }
+.gb-badge img { width: 84px; height: 84px; display: block; margin: 0 auto 8px; }
+.gb-badge .name { font-weight: 700; font-size: 14px; line-height: 1.2; }
+.gb-badge .when { color: var(--faint); font-size: 12px; margin-top: 2px; }
+.gb-big { width: 72px; height: 72px; flex: none; }
+
 /* ---------------------------------------------------------------- friends */
 .split { display: grid; grid-template-columns: minmax(0, 1fr) 360px; gap: 28px; align-items: start; }
 .people { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 22px 16px; }
