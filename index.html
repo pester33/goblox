@@ -4,36 +4,50 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Goblox</title>
-<meta name="description" content="Goblox - build games, play with friends, and share your creations.">
+<meta name="description" content="Play games made by the Goblox community, and make your own in Goblox Studio.">
+<meta name="theme-color" content="#16181c">
 <link rel="icon" href="favicon.ico">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;600;700;800&display=swap">
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
-<header class="nav">
-  <div class="nav-inner">
-    <a href="#/" class="logo"><img src="img/logo.png" alt="Goblox"></a>
-    <nav class="links">
-      <a href="#/games" data-tab="games">Games</a>
+<header class="topbar">
+  <div class="topbar-inner">
+    <a href="#/" class="brand" aria-label="Goblox home">
+      <img class="brand-icon" src="img/icon.png" alt="">
+      <img class="brand-word" src="img/logo.png" alt="Goblox">
+    </a>
+    <nav class="mainnav" aria-label="Main">
+      <a href="#/games" data-tab="games">Discover</a>
       <a href="#/catalog" data-tab="catalog">Catalog</a>
-      <a href="#/friends" data-tab="friends" class="auth-only" hidden>Friends <span id="friend-count" class="pill" hidden></span></a>
-      <a href="#/download" data-tab="download" class="download-link">Download</a>
+      <a href="#/download" data-tab="download">Create</a>
     </nav>
+    <form class="search" id="search" role="search">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10.5 3a7.5 7.5 0 0 1 5.96 12.06l4.24 4.24-1.4 1.4-4.24-4.24A7.5 7.5 0 1 1 10.5 3zm0 2a5.5 5.5 0 1 0 0 11 5.5 5.5 0 0 0 0-11z"/></svg>
+      <input type="search" id="search-input" placeholder="Search games and players" aria-label="Search games and players">
+    </form>
     <div class="account" id="account"></div>
   </div>
 </header>
 <div id="announcement" class="announcement" hidden></div>
-<main id="page" class="page"></main>
+<main id="page"></main>
 <footer class="footer">
   <div class="footer-inner">
-    <img src="img/icon.png" alt="" width="28" height="28">
-    <span>Goblox &middot; build, play and share</span>
-    <span class="spacer"></span>
-    <a href="#/download">Download</a>
-    <a href="#/games">Games</a>
-    <a href="#/catalog">Catalog</a>
+    <div class="footer-brand"><img src="img/icon.png" alt="" width="30" height="30"><span>Goblox</span></div>
+    <nav class="footer-links" aria-label="Footer">
+      <a href="#/games">Discover</a>
+      <a href="#/catalog">Catalog</a>
+      <a href="#/download">Download</a>
+      <a href="https://github.com/pester33/goblox">GitHub</a>
+    </nav>
+    <p class="footer-note">Goblox is a fan-made game platform. Not affiliated with Roblox Corporation.</p>
   </div>
 </footer>
-<div id="toast" class="toast" hidden></div>
+<div id="toast" class="toast" role="status" hidden></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="avatar3d.js"></script>
 <script src="app.js"></script>
 </body>
 </html>
