@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Goblox</title>
+<meta name="description" content="Goblox - build games, play with friends, and share your creations.">
+<link rel="icon" href="favicon.ico">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="nav">
+  <div class="nav-inner">
+    <a href="#/" class="logo"><img src="img/logo.png" alt="Goblox"></a>
+    <nav class="links">
+      <a href="#/games" data-tab="games">Games</a>
+      <a href="#/catalog" data-tab="catalog">Catalog</a>
+      <a href="#/friends" data-tab="friends" class="auth-only" hidden>Friends <span id="friend-count" class="pill" hidden></span></a>
+      <a href="#/download" data-tab="download" class="download-link">Download</a>
+    </nav>
+    <div class="account" id="account"></div>
+  </div>
+</header>
+<div id="announcement" class="announcement" hidden></div>
+<main id="page" class="page"></main>
+<footer class="footer">
+  <div class="footer-inner">
+    <img src="img/icon.png" alt="" width="28" height="28">
+    <span>Goblox &middot; build, play and share</span>
+    <span class="spacer"></span>
+    <a href="#/download">Download</a>
+    <a href="#/games">Games</a>
+    <a href="#/catalog">Catalog</a>
+  </div>
+</footer>
+<div id="toast" class="toast" hidden></div>
+<script src="app.js"></script>
+</body>
+</html>
