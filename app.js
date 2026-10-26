@@ -5,6 +5,7 @@
 const SUPABASE_URL = "https://danpdfczedispfzqdjqz.supabase.co";
 const SUPABASE_KEY = "sb_publishable_PSFCYMxKCXPuHDTPXLkuwg_sZc1w_gy";
 const DOWNLOAD_URL = "download/Goblox.zip";
+const ANDROID_URL = "download/Goblox.apk";
 
 // Must match src/avatar.cpp (and the prices in gb_buy_item).
 const BODY_COLORS = [
@@ -772,32 +773,38 @@ function loginNeeded(what) {
 // ---- download
 
 function downloadPage() {
+  const onAndroid = /Android/i.test(navigator.userAgent);
+  const windowsBtn = `<a class="btn ${onAndroid ? "btn-dark" : "btn-primary"} btn-lg" href="${DOWNLOAD_URL}" download>${icon("download")}Windows</a>`;
+  const androidBtn = `<a class="btn ${onAndroid ? "btn-primary" : "btn-dark"} btn-lg" href="${ANDROID_URL}" download>${icon("download")}Android</a>`;
   return `<section class="dl-hero"><div class="dl-hero-inner">
       <div>
-        <h1>Get Goblox for Windows</h1>
-        <p>One app for everything: play every game, voice chat with friends, dress up your avatar, and build your own games in Goblox Studio.</p>
-        <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:24px">
-          <a class="btn btn-primary btn-lg" href="${DOWNLOAD_URL}" download>${icon("download")}Download Goblox</a>
-          <a class="btn btn-dark btn-lg" href="#/games">Browse games first</a>
-        </div>
-        <div class="dl-meta">Free · Windows 10 and 11 · 1.7 MB</div>
+        <h1>Get Goblox</h1>
+        <p>Play every game and chat with friends on your PC or Android phone. Dress up your avatar, and build your own games in Goblox Studio on PC.</p>
+        <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:24px">${onAndroid ? androidBtn + windowsBtn : windowsBtn + androidBtn}</div>
+        <div class="dl-meta">Free · Windows 10 and 11 (1.7 MB) · Android 8 and newer (2.1 MB)</div>
       </div>
       <img class="app-icon" src="img/icon.png" alt="">
     </div></section>
     <div class="wrap">
-      <section class="section"><div class="section-head"><h2>Install in three steps</h2></div><div class="cols-3">
+      <section class="section"><div class="section-head"><h2>Install on Windows</h2></div><div class="cols-3">
         <div class="panel panel-pad"><div class="step-num">1</div><h3>Unzip</h3><p class="muted">Right-click <b>Goblox.zip</b>, choose <b>Extract All</b>, and open the folder.</p></div>
         <div class="panel panel-pad"><div class="step-num">2</div><h3>Open Goblox.exe</h3><p class="muted">If Windows says it protected your PC, click <b>More info</b>, then <b>Run anyway</b>. The app isn't signed yet.</p></div>
         <div class="panel panel-pad"><div class="step-num">3</div><h3>Log in and play</h3><p class="muted">Use the same account as this website. After that, <b>Play</b> buttons here open games right in the app.</p></div>
       </div></section>
+      <section class="section"><div class="section-head"><h2>Install on Android</h2></div><div class="cols-3">
+        <div class="panel panel-pad"><div class="step-num">1</div><h3>Download</h3><p class="muted">Tap <b>Android</b> above on your phone. Goblox.apk downloads like any other file.</p></div>
+        <div class="panel panel-pad"><div class="step-num">2</div><h3>Open Goblox.apk</h3><p class="muted">Android asks if your browser may install apps: tap <b>Settings</b>, turn on <b>Allow from this source</b>, then go back and tap <b>Install</b>.</p></div>
+        <div class="panel panel-pad"><div class="step-num">3</div><h3>Play</h3><p class="muted">Hold your phone sideways. Left thumb moves, right thumb looks around, the arrow jumps. Studio and voice chat are on PC for now.</p></div>
+      </div></section>
       <section class="section"><div class="cols-2">
         <div class="panel panel-pad"><h2 style="margin-bottom:12px">Requirements</h2><table class="spec">
-          <tr><td>System</td><td>Windows 10 or 11, 64-bit</td></tr>
-          <tr><td>Graphics</td><td>OpenGL 3.3 (nearly any PC from the last ten years)</td></tr>
+          <tr><td>Windows</td><td>Windows 10 or 11, 64-bit, OpenGL 3.3 (nearly any PC from the last ten years)</td></tr>
+          <tr><td>Android</td><td>Android 8.0 or newer, 64-bit (nearly every phone from the last six years)</td></tr>
           <tr><td>Internet</td><td>Needed to log in and play online</td></tr>
-          <tr><td>Microphone</td><td>Optional, for voice chat. It unlocks once your account is a day old.</td></tr>
+          <tr><td>Microphone</td><td>Optional, for voice chat on PC. It unlocks once your account is a day old.</td></tr>
         </table></div>
         <div class="panel panel-pad"><h2 style="margin-bottom:12px">What's new</h2><ul class="changes">
+          <li><b>Goblox for Android</b>: play on your phone with a thumbstick, a jump button and the on-screen keyboard for chat.</li>
           <li><a href="#/badges">Goblox Badges</a>: earn badges like 1K Club and Game Creator. They pop up in the app and show on your profile.</li>
           <li>New red G logo.</li>
           <li>Play buttons on this website open games in the app.</li>
