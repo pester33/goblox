@@ -3,7 +3,8 @@
 // template, T-shirts on the torso front, and the hats.
 //
 //   Avatar3D.thumbnail(avatar, "body" | "head" | "hat", size) -> Promise<image URL>  (cached)
-//   Avatar3D.viewer(element, avatar) -> a live, drag-to-turn view; returns { destroy() }
+//   Avatar3D.viewer(element, avatar) -> a live, drag-to-turn view; returns { play(name), onAnimation(fn), destroy() }
+//   Avatar3D.animations() -> [{ id, name, loop }] for the viewer's play()
 //
 // Needs three.js (global THREE). Without WebGL, thumbnail() resolves to "" and the site falls back
 // to its flat pictures.
@@ -325,6 +326,91 @@ const Avatar3D = (() => {
     return job;
   }
 
+  // ------------------------------------------------------------------ animations (live viewer)
+
+  // Each animation turns time t (seconds since it started) into a pose: joint angles in radians
+  // for the arms, legs and head as [x, y, z], plus `y` (lift) and `turn` for the whole body.
+  // The character faces +Z, so a negative x swings a limb forward; z swings arms out sideways
+  // (positive for the left arm, negative for the right).
+  const S = Math.sin, PI = Math.PI;
+  const ANIMATIONS = {
+    idle: { name: "Idle", loop: true, pose: (t) => {
+      const s = S(t * 1.5) * 0.05;
+      return { la: [s, 0, 0.02], ra: [-s, 0, -0.02], head: [S(t * 0.7) * 0.03, S(t * 0.4) * 0.08, 0] };
+    } },
+    walk: { name: "Walk", loop: true, pose: (t) => {
+      const s = S(t * 6) * 0.7;
+      return { la: [s, 0, 0], ra: [-s, 0, 0], ll: [-s, 0, 0], rl: [s, 0, 0], y: Math.abs(S(t * 6)) * 0.08 };
+    } },
+    run: { name: "Run", loop: true, pose: (t) => {
+      const s = S(t * 10) * 1.1;
+      return { la: [s, 0, 0.05], ra: [-s, 0, -0.05], ll: [-s * 0.9, 0, 0], rl: [s * 0.9, 0, 0],
+        y: Math.abs(S(t * 10)) * 0.2, head: [0.1, 0, 0] };
+    } },
+    jump: { name: "Jump", length: 1.1, pose: (t) => {
+      const air = t > 0.25 && t < 0.95 ? S((t - 0.25) / 0.7 * PI) : 0;  // 0 on the ground, 1 at the top
+      const crouch = t < 0.25 ? S(t / 0.25 * PI) : t > 0.95 ? S((t - 0.95) / 0.15 * PI) : 0;
+      return { la: [0, 0, PI * 0.75 * air], ra: [0, 0, -PI * 0.75 * air],
+        ll: [-0.3 * air + 0.5 * crouch, 0, 0], rl: [0.2 * air + 0.5 * crouch, 0, 0],
+        y: air * 0.6 - crouch * 0.15 };
+    } },
+    climb: { name: "Climb", loop: true, pose: (t) => {
+      const s = S(t * 5);
+      return { la: [-PI * 0.8 + s * 0.4, 0, 0], ra: [-PI * 0.8 - s * 0.4, 0, 0],
+        ll: [-0.6 - s * 0.5, 0, 0], rl: [-0.6 + s * 0.5, 0, 0], y: s * 0.1 };
+    } },
+    sit: { name: "Sit", loop: true, pose: (t) => (
+      { la: [-0.5, 0, 0.05], ra: [-0.5, 0, -0.05], ll: [-PI / 2, 0, 0.05], rl: [-PI / 2, 0, -0.05],
+        y: -1, head: [S(t * 0.8) * 0.04, 0, 0] }) },
+    wave: { name: "Wave", length: 2.4, pose: (t) => (
+      { ra: [0, 0, -PI * 0.85 + S(t * 9) * 0.3], la: [0, 0, 0.05], head: [0, 0, S(t * 9) * 0.05] }) },
+    point: { name: "Point", length: 2, pose: () => ({ ra: [-PI / 2, 0, -0.1], head: [0, -0.15, 0] }) },
+    cheer: { name: "Cheer", length: 2, pose: (t) => {
+      const b = Math.abs(S(t * 8));
+      return { la: [0, 0, PI * 0.9 - b * 0.2], ra: [0, 0, -PI * 0.9 + b * 0.2], y: b * 0.2, head: [-0.2, 0, 0] };
+    } },
+    laugh: { name: "Laugh", length: 2, pose: (t) => {
+      const b = S(t * 18) * 0.12;
+      return { la: [-0.4, 0, 0.3], ra: [-0.4, 0, -0.3], head: [-0.3 + b, 0, 0], y: b * 0.4 };
+    } },
+    dance: { name: "Dance", loop: true, pose: (t) => {
+      const s = S(t * 5);
+      return { la: [0, 0, 1.2 + s * 0.8], ra: [0, 0, -1.2 + s * 0.8], ll: [0, 0, 0.15 + s * 0.15], rl: [0, 0, -0.15 + s * 0.15],
+        head: [0, 0, s * 0.2], turn: s * 0.3, y: Math.abs(s) * 0.15 };
+    } },
+    dance2: { name: "Dance 2", loop: true, pose: (t) => {
+      const s = S(t * 7), c = Math.cos(t * 7);
+      return { la: [-PI / 2 + c * 0.6, 0, 0.3], ra: [-PI / 2 - c * 0.6, 0, -0.3], ll: [s * 0.5, 0, 0], rl: [-s * 0.5, 0, 0],
+        head: [s * 0.15, 0, 0], y: Math.abs(s) * 0.25 };
+    } },
+    dance3: { name: "Dance 3", loop: true, pose: (t) => {
+      const s = S(t * 4);
+      return { la: [0, 0, PI * 0.9], ra: [0, 0, -PI * 0.9 + Math.abs(s) * 0.4], ll: [-Math.max(0, s) * 1.2, 0, 0],
+        rl: [Math.min(0, s) * 1.2, 0, 0], turn: t * 3, y: Math.abs(s) * 0.2 };
+    } },
+  };
+  const JOINTS = ["la", "ra", "ll", "rl"];  // character.children 1..4, in PARTS order
+
+  function samplePose(name, t) {
+    const a = ANIMATIONS[name];
+    const p = a.pose(t);
+    const out = { y: p.y || 0, turn: p.turn || 0, head: p.head || [0, 0, 0] };
+    for (const j of JOINTS) out[j] = p[j] || [0, 0, 0];
+    return out;
+  }
+  function mixPose(a, b, k) {
+    const lerp = (x, y) => x + (y - x) * k;
+    const out = { y: lerp(a.y, b.y), turn: lerp(a.turn, b.turn), head: a.head.map((v, i) => lerp(v, b.head[i])) };
+    for (const j of JOINTS) out[j] = a[j].map((v, i) => lerp(v, b[j][i]));
+    return out;
+  }
+  function applyPose(character, p, yaw) {
+    JOINTS.forEach((j, i) => character.children[i + 1].rotation.set(...p[j]));
+    character.children[5].rotation.set(...p.head);
+    character.position.y = p.y;
+    character.rotation.y = yaw + p.turn;
+  }
+
   // ------------------------------------------------------------------ live viewer (profile page)
 
   function viewer(el, avatar) {
@@ -353,6 +439,15 @@ const Avatar3D = (() => {
     scene.add(shadow);
 
     let character = null, yaw = 0.3, spin = 0, dragging = false, lastX = 0, alive = true, idle = 0;
+    let anim = "idle", animTime = 0, from = null, blend = 1, current = null, onChange = null;
+    const play = (name) => {
+      if (!ANIMATIONS[name]) return;
+      from = current;
+      blend = 0;
+      anim = name;
+      animTime = 0;
+      if (onChange) onChange(name);
+    };
     loadClothes(av).then((img) => {
       if (!alive) return;
       character = buildCharacter(av, img);
@@ -370,6 +465,7 @@ const Avatar3D = (() => {
         const turn = character.rotation.y;
         character.rotation.y = 0;
         frame(camera, "body", character);
+        camera.zoom = 0.8;  // room for arms raised overhead and jumps
         character.rotation.y = turn;
       }
       camera.updateProjectionMatrix();
@@ -405,11 +501,17 @@ const Avatar3D = (() => {
         if (idle > 3) yaw += dt * 0.35;  // slow turn when left alone
       }
       if (character) {
-        character.rotation.y = yaw;
-        // Gentle idle sway of the arms, like the game's standing animation.
-        const s = Math.sin(now / 1000 * 1.5) * 0.05;
-        character.children[1].rotation.x = s;
-        character.children[2].rotation.x = -s;
+        animTime += dt;
+        const a = ANIMATIONS[anim];
+        if (!a.loop && animTime > a.length) play("idle");  // one-shot emotes go back to standing
+        let pose = samplePose(anim, animTime);
+        if (from) {  // ease out of the last pose over a fifth of a second
+          blend = Math.min(1, blend + dt * 5);
+          pose = mixPose(from, pose, blend);
+          if (blend >= 1) from = null;
+        }
+        current = pose;
+        applyPose(character, pose, yaw);
       }
       renderer.render(scene, camera);
       requestAnimationFrame(loop);
@@ -417,6 +519,9 @@ const Avatar3D = (() => {
     requestAnimationFrame(loop);
 
     return {
+      play,
+      // fn(name) runs whenever the animation changes, including the return to idle.
+      onAnimation(fn) { onChange = fn; },
       destroy() {
         alive = false;
         if (ro) ro.disconnect();
@@ -427,6 +532,7 @@ const Avatar3D = (() => {
     };
   }
 
-  return { thumbnail, viewer, setAssetLoader, hasWebGL };
+  const animations = () => Object.entries(ANIMATIONS).map(([id, a]) => ({ id, name: a.name, loop: !!a.loop }));
+  return { thumbnail, viewer, setAssetLoader, hasWebGL, animations };
 })();
 window.Avatar3D = Avatar3D;  // app.js checks window.Avatar3D (a top-level const isn't on window)
