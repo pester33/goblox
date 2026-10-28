@@ -662,6 +662,8 @@ async function userPage([name]) {
         </div>
       </div>
     </div>
+    ${window.Avatar3D && Avatar3D.hasWebGL() ? `<div class="anim-bar" role="group" aria-label="Animations">${Avatar3D.animations().map((a) =>
+      `<button class="chip${a.id === "idle" ? " active" : ""}" data-anim="${a.id}">${esc(a.name)}</button>`).join("")}</div>` : ""}
     ${(p.goblox_badges || []).length ? `<section class="section"><div class="section-head"><h2>Goblox Badges</h2><span class="spacer"></span><a class="more" href="#/badges">All Goblox Badges</a></div>
       <div class="gb-badges">${p.goblox_badges.map(gobloxBadgeTile).join("")}</div></section>` : ""}
     <nav class="tabs" style="margin-top:34px" aria-label="Profile sections"><button class="active" data-tab="games">Creations</button><button data-tab="badges">Game badges</button></nav>
@@ -672,7 +674,11 @@ async function userPage([name]) {
   </div>`;
 }
 userPage.after = ([name]) => {
-  if (window.Avatar3D && Avatar3D.hasWebGL() && profileData) liveViewer = Avatar3D.viewer($("#stage"), profileData.avatar);
+  if (window.Avatar3D && Avatar3D.hasWebGL() && profileData) {
+    liveViewer = Avatar3D.viewer($("#stage"), profileData.avatar);
+    liveViewer.onAnimation((name) => $$("[data-anim]").forEach((b) => b.classList.toggle("active", b.dataset.anim === name)));
+    $$("[data-anim]").forEach((b) => (b.onclick = () => liveViewer.play(b.dataset.anim)));
+  }
   $$(".tabs button").forEach((b) => (b.onclick = () => {
     $$(".tabs button").forEach((x) => x.classList.toggle("active", x === b));
     $$("[data-pane]").forEach((p) => (p.hidden = p.dataset.pane !== b.dataset.tab));
